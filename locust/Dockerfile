@@ -1,0 +1,14 @@
+# Use the official Locust image as the base
+FROM locustio/locust
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the local locustfile.py to the container
+COPY locustfile.py .
+
+# Expose the required ports for Locust
+EXPOSE 8089 5557 5558
+
+# Set the default command for the container
+CMD ["-f", "locustfile.py"]

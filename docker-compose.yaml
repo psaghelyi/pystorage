@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: backend
+    environment:
+      - PORT=9000
+    expose:
+      - 9000
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - "8080:8080"
+  locust:
+    build:
+      context: locust
+    expose:
+      - 5557
+      - 5558
+    ports:
+      - "8089:8089"
