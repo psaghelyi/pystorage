@@ -29,7 +29,7 @@ async def receive_data(request: Request):
     global running, failed_count
     running = True
     failed_count = 0
-    tasks = [write_to_endpoint(buffers[i], endpoints[i]) for i in range(k + m)]
+    tasks = [write_to_endpoint(buffers[i], endpoints[i], i) for i in range(k + m)]
     try:
         async for data_chunk in request.stream():
             if not data_chunk or not running:
@@ -70,20 +70,21 @@ async def stream_from_buffer(buffer: asyncio.Queue):
         yield chunk
 
 
-async def write_to_endpoint(buffer: asyncio.Queue, endpoint: str):
+async def write_to_endpoint(buffer: asyncio.Queue, endpoint: str, backend_id: int):
     global running, failed_count
     async with aiohttp.ClientSession() as session:
         # Prepare the session for streaming
         headers = {"Content-Type": "application/octet-stream"}
+        url = f"{endpoint}?backend_id={backend_id}"
         try:
             # Start the stream to the backend
-            async with session.post(endpoint, headers=headers, data=stream_from_buffer(buffer)) as response:
+            async with session.post(url=url, headers=headers, data=stream_from_buffer(buffer)) as response:
                 # Handle non-200 response status
                 if response.status != 200:
                     raise Exception(f"Failed to send data to {endpoint}. Status: {response.status}")
 
         except Exception as e:
-            print(f"Error with endpoint {endpoint}: {e}")
+            print(f"Error with endpoint {url}: {e}")
             async with state_lock:  # Acquire lock before modifying the shared state
                 failed_count += 1
                 if failed_count > max_failures:

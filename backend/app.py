@@ -5,7 +5,7 @@ import time
 app = FastAPI()
 
 @app.post("/")
-async def receive_stream(request: Request):
+async def receive_stream(request: Request, backend_id: str = None):
     total_bytes_received = 0
     start_time = time.time()
     
@@ -20,6 +20,8 @@ async def receive_stream(request: Request):
     # Print the statistics to the console
     print(f"Received a total of {total_bytes_received} bytes.")
     print(f"Received at a speed of {speed:.2f} MB/s.")
-    
+    if backend_id:
+        print(f"Target backend ID: {backend_id}")
+        
     return PlainTextResponse(f"Data received successfully at {speed:.2f} MB/s")
 
