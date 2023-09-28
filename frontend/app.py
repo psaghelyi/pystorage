@@ -41,21 +41,22 @@ async def receive_data(request: Request):
 
             async with state_lock:
                 if failed_count > max_failures:  # Check if we should stop
-                    running = False
-                    break
+                    raise Exception("Number of failed backends went over threshold.")
 
         # Signal end of stream to all sender tasks by placing sentinel in buffers
         for buf in buffers:
             await buf.put(None)
-
-        # Wait for all sender tasks to complete
-        await asyncio.gather(*tasks)
         
     except Exception as e:
         async with state_lock:
             running = False
         print(f"Error while encoding or sending data: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+    finally:
+        # Wait for all sender tasks to complete
+        await asyncio.gather(*tasks)
+        
 
     return {"status": "success"}
 
