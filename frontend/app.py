@@ -93,4 +93,4 @@ async def write_to_endpoint(buffer: asyncio.Queue, endpoint: str, backend_id: in
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="debug")

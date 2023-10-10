@@ -11,4 +11,4 @@ COPY locustfile.py .
 EXPOSE 8089 5557 5558
 
 # Set the default command for the container
-CMD ["-f", "locustfile.py"]
+CMD ["--master", "-f", "locustfile.py", "--host", "http://frontend:8080"]

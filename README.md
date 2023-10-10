@@ -14,3 +14,9 @@ see the backend logs: `$ make log_backend`
 Scematic:
 
 ![Scematic](./pystorage.drawio.png)
+
+
+
+
+Cikk
+Prezentacio 8-15 slide !!!

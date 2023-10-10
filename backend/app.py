@@ -25,3 +25,6 @@ async def receive_stream(request: Request, backend_id: str = None):
         
     return PlainTextResponse(f"Data received successfully at {speed:.2f} MB/s")
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=9000, log_level="debug")

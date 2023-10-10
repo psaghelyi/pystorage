@@ -22,7 +22,12 @@
 			"extensions": [
 				"ms-python.python",
 				"ms-python.vscode-pylance",
-				"ms-azuretools.vscode-docker"
+				"ms-azuretools.vscode-docker",
+				"ms-toolsai.jupyter",
+				"ms-toolsai.vscode-jupyter-slideshow",
+				"ms-toolsai.jupyter-keymap",
+				"ms-toolsai.jupyter-renderers",
+				"ms-toolsai.vscode-jupyter-cell-tags"
 			]
 		}
 	},
@@ -34,7 +39,7 @@
 	// "forwardPorts": [],
 
 	// Uncomment the next line if you want start specific services in your Docker Compose config.
-	"runServices": ["backend", "frontend", "locust"]
+	"runServices": ["backend", "frontend"]
 
 	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
 	// "shutdownAction": "none",
