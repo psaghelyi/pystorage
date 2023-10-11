@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  backend:
+  backend0:
     build:
       context: backend
     environment:
@@ -8,16 +8,89 @@ services:
     expose:
       - 9000
     networks:
-      - storage
+      - net-backend
+  backend1:
+    build:
+      context: backend
+    environment:
+      - PORT=9001
+    expose:
+      - 9001
+    networks:
+      - net-backend
+  backend2:
+    build:
+      context: backend
+    environment:
+      - PORT=9002
+    expose:
+      - 9002
+    networks:
+      - net-backend
+  backend3:
+    build:
+      context: backend
+    environment:
+      - PORT=9003
+    expose:
+      - 9003
+    networks:
+      - net-backend
+  backend4:
+    build:
+      context: backend
+    environment:
+      - PORT=9004
+    expose:
+      - 9004
+    networks:
+      - net-backend
+  backend5:
+    build:
+      context: backend
+    environment:
+      - PORT=9005
+    expose:
+      - 9005
+    networks:
+      - net-backend
+  backend6:
+    build:
+      context: backend
+    environment:
+      - PORT=9006
+    expose:
+      - 9006
+    networks:
+      - net-backend
+  backend7:
+    build:
+      context: backend
+    environment:
+      - PORT=9007
+    expose:
+      - 9007
+    networks:
+      - net-backend
+  
   frontend:
     build:
       context: frontend
     expose:
       - 8080
     networks:
-      - storage
+      - net-frontend
+      - net-backend
     depends_on:
-      - backend
+      - backend0
+      - backend1
+      - backend2
+      - backend3
+      - backend4
+      - backend5
+      - backend6
+      - backend7
+
   locust-master:
     build:
       context: locust
@@ -28,7 +101,7 @@ services:
     ports:
       - "8089:8089"
     networks:
-      - storage
+      - net-locust
     depends_on:
       - frontend
   locust-worker:
@@ -36,7 +109,8 @@ services:
       context: locust
       dockerfile: Dockerfile.worker
     networks:
-      - storage
+      - net-locust
+      - net-frontend
     depends_on:
       - locust-master
   proxy:
@@ -46,10 +120,14 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - storage
+      - net-frontend
     depends_on:
       - frontend
 
 networks:
-  storage:
+  net-frontend:
+    driver: bridge
+  net-backend:
+    driver: bridge
+  net-locust:
     driver: bridge

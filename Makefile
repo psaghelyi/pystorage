@@ -1,5 +1,5 @@
 all:
-	docker compose up -d --scale frontend=8 --scale backend=8 --scale locust-worker=4 --build
+	docker compose up -d --scale frontend=8 --scale locust-worker=4 --build
 
 clean:
 	docker compose down
