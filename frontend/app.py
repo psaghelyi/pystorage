@@ -1,94 +1,97 @@
 from fastapi import FastAPI, HTTPException, Request
 from pyeclib.ec_iface import ECDriver
-from typing import List
 import aiohttp
 import asyncio
+import logging
+
+# logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 app = FastAPI()
 
 # Reed-Solomon parameters
-k = 6  # Number of data chunks
-m = 2  # Number of parity chunks
-
+k = 6
+m = 2
 ec_driver = ECDriver(k=k, m=m, ec_type="liberasurecode_rs_vand")
 
-# Buffers to hold encoded data before sending
-buffers = [asyncio.Queue() for _ in range(k + m)]
+endpoints = [f"http://backend{i}:900{i}" for i in range(k + m)]
+max_failures = m // 2  # maximum number of failures to tolerate is half of the number of parity chunks
+max_buffer_size = 64  # maximum number of chunks to buffer in memory
 
-# List of endpoints where data will be sent
-endpoints = [f"http://backend:9000" for i in range(k + m)]
 
-running = True
-failed_count = 0
-max_failures = m - 1
-state_lock = asyncio.Lock()
+class Frontend:
+    def __init__(self):
+        self.buffers = [asyncio.Queue(maxsize=max_buffer_size) for _ in range(k + m)]
+        self.state_lock = asyncio.Lock()
+        self.failed_count = 0
+
+    async def receive_data(self, request: Request):
+        tasks = [self.write_to_endpoint(i) for i in range(k + m)]
+        try:
+            async for chunk in request.stream():
+                if not chunk:
+                    logging.info("End of incomming stream")
+                    break
+
+                encoded_data = ec_driver.encode(chunk)
+                logging.info(f"Chunk encoded: {len(chunk)}")
+                for idx, strip in enumerate(encoded_data):
+                    await self.buffers[idx].put(strip)
+
+            # place sentinel values in the queues to signal the end of the stream
+            logging.info("Placing sentinels to buffers")
+            for buffer in self.buffers:
+                await buffer.put(None)
+
+        except Exception as e:
+            logging.error(f"Error while encoding or sending data: {e}")
+            async with self.state_lock:
+                self.failed_count = max_failures + 1  # force the failure count to go over the threshold
+
+        finally:
+            await asyncio.gather(*tasks)
+
+        if self.failed_count > max_failures:
+            logging.error("Number of failed backends went over threshold.")
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+
+        return {"status": "success"}
+
+    async def stream_from_buffer(self, backend_id):
+        buffer = self.buffers[backend_id]
+        while True:
+            chunk = await buffer.get()
+            if chunk is None:
+                logging.info(f"backend{backend_id} - End of buffer")
+                break
+            logging.info(f"backend{backend_id} - Chunk read from buffer: {len(chunk)}")
+            yield chunk
+
+    async def write_to_endpoint(self, backend_id):
+        endpoint = endpoints[backend_id]
+        async with aiohttp.ClientSession() as session:
+            headers = {"Content-Type": "application/octet-stream"}
+            url = f"{endpoint}?backend_id={backend_id}"
+            try:
+                async with session.post(url=url, headers=headers, data=self.stream_from_buffer(backend_id)) as response:
+                    if response.status != 200:
+                        raise Exception(f"Failed to send data to {endpoint}. Status: {response.status}")
+
+            except Exception as e:
+                logging.error(f"Error with endpoint {url}: {e}")
+                async with self.state_lock:
+                    self.failed_count += 1
+                    logging.info(f"Failed count: {self.failed_count}")
+                        
+                # Flush the buffer for this backend
+                buffer = self.buffers[backend_id]
+                while await buffer.get() is not None:
+                    pass
+
 
 @app.post("/")
 async def receive_data(request: Request):
-    print(f'incoming request {request.url}')
-    global running, failed_count
-    running = True
-    failed_count = 0
-    tasks = [write_to_endpoint(buffers[i], endpoints[i], i) for i in range(k + m)]
-    try:
-        async for data_chunk in request.stream():
-            if not data_chunk or not running:
-                break
-        
-            encoded_data = ec_driver.encode(data_chunk)
-            for idx, chunk in enumerate(encoded_data):
-                await buffers[idx].put(chunk)
-
-            async with state_lock:
-                if failed_count > max_failures:  # Check if we should stop
-                    raise Exception("Number of failed backends went over threshold.")
-
-        # Signal end of stream to all sender tasks by placing sentinel in buffers
-        for buf in buffers:
-            await buf.put(None)
-        
-    except Exception as e:
-        async with state_lock:
-            running = False
-        print(f"Error while encoding or sending data: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
-    
-    finally:
-        # Wait for all sender tasks to complete
-        await asyncio.gather(*tasks)
-        
-
-    return {"status": "success"}
-
-
-async def stream_from_buffer(buffer: asyncio.Queue):
-    global running
-    while running:
-        chunk = await buffer.get()
-        if chunk is None:  # Sentinel value encountered
-            break
-        yield chunk
-
-
-async def write_to_endpoint(buffer: asyncio.Queue, endpoint: str, backend_id: int):
-    global running, failed_count
-    async with aiohttp.ClientSession() as session:
-        # Prepare the session for streaming
-        headers = {"Content-Type": "application/octet-stream"}
-        url = f"{endpoint}?backend_id={backend_id}"
-        try:
-            # Start the stream to the backend
-            async with session.post(url=url, headers=headers, data=stream_from_buffer(buffer)) as response:
-                # Handle non-200 response status
-                if response.status != 200:
-                    raise Exception(f"Failed to send data to {endpoint}. Status: {response.status}")
-
-        except Exception as e:
-            print(f"Error with endpoint {url}: {e}")
-            async with state_lock:  # Acquire lock before modifying the shared state
-                failed_count += 1
-                if failed_count > max_failures:
-                    running = False
+    frontend = Frontend()
+    return await frontend.receive_data(request)
 
 
 if __name__ == "__main__":
