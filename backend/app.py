@@ -1,6 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 import time
+import logging
+
+
+# logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 app = FastAPI()
 
@@ -17,11 +21,10 @@ async def receive_stream(request: Request, backend_id: str = None):
     elapsed_time = end_time - start_time
     speed = total_bytes_received / elapsed_time / (1024 * 1024)  # MB/s
     
-    # Print the statistics to the console
-    print(f"Received a total of {total_bytes_received} bytes.")
-    print(f"Received at a speed of {speed:.2f} MB/s.")
-    if backend_id:
-        print(f"Target backend ID: {backend_id}")
+    #logging.info(f"Received a total of {total_bytes_received} bytes.")
+    #logging.info(f"Received at a speed of {speed:.2f} MB/s.")
+    #if backend_id:
+    #    logging.info(f"Target backend ID: {backend_id}")
         
     return PlainTextResponse(f"Data received successfully at {speed:.2f} MB/s")
 

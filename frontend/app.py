@@ -14,6 +14,7 @@ m = 2
 ec_driver = ECDriver(k=k, m=m, ec_type="liberasurecode_rs_vand")
 
 endpoints = [f"http://backend{i}:900{i}" for i in range(k + m)]
+sessions = [aiohttp.ClientSession() for i in range(k + m)]  # HTTP1.1 keep alive
 max_failures = m // 2  # maximum number of failures to tolerate is half of the number of parity chunks
 max_buffer_size = 64  # maximum number of chunks to buffer in memory
 
@@ -68,30 +69,36 @@ class Frontend:
 
     async def write_to_endpoint(self, backend_id):
         endpoint = endpoints[backend_id]
-        async with aiohttp.ClientSession() as session:
-            headers = {"Content-Type": "application/octet-stream"}
-            url = f"{endpoint}?backend_id={backend_id}"
-            try:
-                async with session.post(url=url, headers=headers, data=self.stream_from_buffer(backend_id)) as response:
-                    if response.status != 200:
-                        raise Exception(f"Failed to send data to {endpoint}. Status: {response.status}")
+        session = sessions[backend_id]
+        headers = {"Content-Type": "application/octet-stream"}
+        url = f"{endpoint}?backend_id={backend_id}"
+        try:
+            async with session.post(url=url, headers=headers, data=self.stream_from_buffer(backend_id)) as response:
+                if response.status != 200:
+                    raise Exception(f"Failed to send data to {endpoint}. Status: {response.status}")
 
-            except Exception as e:
-                logging.error(f"Error with endpoint {url}: {e}")
-                async with self.state_lock:
-                    self.failed_count += 1
-                    #logging.info(f"Failed count: {self.failed_count}")
-                        
-                # Flush the buffer for this backend
-                buffer = self.buffers[backend_id]
-                while await buffer.get() is not None:
-                    pass
+        except Exception as e:
+            logging.error(f"Error with endpoint {url}: {e}")
+            async with self.state_lock:
+                self.failed_count += 1
+                #logging.info(f"Failed count: {self.failed_count}")
+                    
+            # Flush the buffer for this backend
+            buffer = self.buffers[backend_id]
+            while await buffer.get() is not None:
+                pass
 
 
 @app.post("/")
 async def receive_data(request: Request):
     frontend = Frontend()
     return await frontend.receive_data(request)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    print("Application shutdown...")
+    for session in sessions:
+        await session.close()
 
 
 if __name__ == "__main__":

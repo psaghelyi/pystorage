@@ -2,7 +2,7 @@ from locust import HttpUser, task, constant, events
 import random
 
 
-data = bytearray(random.getrandbits(8) for _ in range(128 * 1024))
+data = bytearray(random.getrandbits(8) for _ in range(1024 * 1024))
 
 class WebsiteUser(HttpUser):
     wait_time = constant(0)
