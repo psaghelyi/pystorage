@@ -29,16 +29,16 @@ class Frontend:
         try:
             async for chunk in request.stream():
                 if not chunk:
-                    logging.info("End of incomming stream")
+                    #logging.info("End of incomming stream")
                     break
 
                 encoded_data = ec_driver.encode(chunk)
-                logging.info(f"Chunk encoded: {len(chunk)}")
+                #logging.info(f"Chunk encoded: {len(chunk)}")
                 for idx, strip in enumerate(encoded_data):
                     await self.buffers[idx].put(strip)
 
             # place sentinel values in the queues to signal the end of the stream
-            logging.info("Placing sentinels to buffers")
+            #logging.info("Placing sentinels to buffers")
             for buffer in self.buffers:
                 await buffer.put(None)
 
@@ -61,9 +61,9 @@ class Frontend:
         while True:
             chunk = await buffer.get()
             if chunk is None:
-                logging.info(f"backend{backend_id} - End of buffer")
+                #logging.info(f"backend{backend_id} - End of buffer")
                 break
-            logging.info(f"backend{backend_id} - Chunk read from buffer: {len(chunk)}")
+            #logging.info(f"backend{backend_id} - Chunk read from buffer: {len(chunk)}")
             yield chunk
 
     async def write_to_endpoint(self, backend_id):
@@ -80,7 +80,7 @@ class Frontend:
                 logging.error(f"Error with endpoint {url}: {e}")
                 async with self.state_lock:
                     self.failed_count += 1
-                    logging.info(f"Failed count: {self.failed_count}")
+                    #logging.info(f"Failed count: {self.failed_count}")
                         
                 # Flush the buffer for this backend
                 buffer = self.buffers[backend_id]
