@@ -6,9 +6,10 @@ WORKDIR /app
 
 # Copy the local locustfile.py to the container
 COPY locustfile.py .
+COPY start-locust.sh .
 
 # Expose the required ports for Locust
 EXPOSE 8089 5557 5558
 
 # Set the default command for the container
-CMD ["--master", "-f", "locustfile.py", "--host", "http://frontend:8080"]
+ENTRYPOINT ["./start-locust.sh"]

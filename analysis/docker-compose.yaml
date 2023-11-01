@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  locust-master:
+    build:
+      context: ../locust
+      dockerfile: Dockerfile.master
+    volumes:
+      - ./.results:/app/results
+    #env_file:
+    #  - .env
+    environment:
+      NUM_USERS: ${NUM_USERS}
+      SPAWN_RATE: ${SPAWN_RATE}
+      RUN_TIME: ${RUN_TIME}
+      CSV_FILENAME: ${CSV_FILENAME}
+      PAYLOAD_SIZE: ${PAYLOAD_SIZE}
+    ports:
+      - "8089:8089"
+    expose:
+      - "5557"
+      - "5558"
+    networks:
+      - net-locust
+
+  locust-worker:
+    build:
+      context: ../locust
+      dockerfile: Dockerfile.worker
+    networks:
+      - net-locust
+      - pystorage_net-frontend
+    depends_on:
+      - locust-master
+
+
+networks:
+  net-locust:
+    driver: bridge
+  pystorage_net-frontend:
+    external: true

@@ -91,28 +91,6 @@ services:
       - backend6
       - backend7
 
-  locust-master:
-    build:
-      context: locust
-      dockerfile: Dockerfile.master
-    expose:
-      - 5557
-      - 5558
-    ports:
-      - "8089:8089"
-    networks:
-      - net-locust
-    depends_on:
-      - frontend
-  locust-worker:
-    build:
-      context: locust
-      dockerfile: Dockerfile.worker
-    networks:
-      - net-locust
-      - net-frontend
-    depends_on:
-      - locust-master
   proxy:
     image: nginx:1.23.1
     volumes:
@@ -128,6 +106,4 @@ networks:
   net-frontend:
     driver: bridge
   net-backend:
-    driver: bridge
-  net-locust:
     driver: bridge

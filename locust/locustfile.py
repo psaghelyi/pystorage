@@ -1,13 +1,18 @@
-from locust import HttpUser, task, constant, events
-import random
+from locust import FastHttpUser, task, constant 
+import os, io
 
-
-data = bytearray(random.getrandbits(8) for _ in range(1024 * 1024))
-
-class WebsiteUser(HttpUser):
+class StorageUser(FastHttpUser):
     wait_time = constant(0)
-    
-    @task
-    def send_random_data(self):
-        self.client.post("/", data=data, headers={"content-type": "application/octet-stream"})
 
+    def on_start(self):
+        # Get payload size from environment variable
+        payload_size = int(os.environ.get("PAYLOAD_SIZE", 0))
+        # Generate random binary content
+        random_bytes = os.urandom(payload_size)
+        # Convert bytes to file like object
+        self.static_content = io.BytesIO(random_bytes)
+
+
+    @task
+    def store_operation(self):
+        self.client.post("/", data=self.static_content, headers={"content-type": "application/octet-stream"})
