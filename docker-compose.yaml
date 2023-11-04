@@ -3,8 +3,6 @@ services:
   backend0:
     build:
       context: backend
-    environment:
-      - PORT=9000
     expose:
       - 9000
     networks:
@@ -12,67 +10,137 @@ services:
   backend1:
     build:
       context: backend
-    environment:
-      - PORT=9001
     expose:
-      - 9001
+      - 9000
     networks:
       - net-backend
   backend2:
     build:
       context: backend
-    environment:
-      - PORT=9002
     expose:
-      - 9002
+      - 9000
     networks:
       - net-backend
   backend3:
     build:
       context: backend
-    environment:
-      - PORT=9003
     expose:
-      - 9003
+      - 9000
     networks:
       - net-backend
   backend4:
     build:
       context: backend
-    environment:
-      - PORT=9004
     expose:
-      - 9004
+      - 9000
     networks:
       - net-backend
   backend5:
     build:
       context: backend
-    environment:
-      - PORT=9005
     expose:
-      - 9005
+      - 9000
     networks:
       - net-backend
   backend6:
     build:
       context: backend
-    environment:
-      - PORT=9006
     expose:
-      - 9006
+      - 9000
     networks:
       - net-backend
   backend7:
     build:
       context: backend
-    environment:
-      - PORT=9007
     expose:
-      - 9007
+      - 9000
     networks:
       - net-backend
-  
+  backend8:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend9:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend10:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend11:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend12:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend13:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend14:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend15:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend16:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend17:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend18:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+  backend19:
+    build:
+      context: backend
+    expose:
+      - 9000
+    networks:
+      - net-backend
+
   frontend:
     build:
       context: frontend
@@ -90,6 +158,18 @@ services:
       - backend5
       - backend6
       - backend7
+      - backend8
+      - backend9
+      - backend10
+      - backend11
+      - backend12
+      - backend13
+      - backend14
+      - backend15
+      - backend16
+      - backend17
+      - backend18
+      - backend19
 
   proxy:
     image: nginx:1.23.1
