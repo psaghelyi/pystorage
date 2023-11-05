@@ -1,12 +1,12 @@
-from math import log
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request 
+from fastapi.responses import PlainTextResponse
 from pyeclib.ec_iface import ECDriver
 import aiohttp
 import asyncio
 import logging
 import random
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.WARNING)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 app = FastAPI()
 
@@ -35,6 +35,10 @@ class Frontend:
         replication_nodes = random.sample(range(K + M), M + 1)
         replication_chunks = []
         tasks = []
+        
+        #if not [b.empty() for b in self.buffers] == [True] * (K + M):
+        #    logging.error("Buffers are not empty!")
+        #    raise HTTPException(status_code=500, detail="Internal Server Error")
 
         try:
             async for chunk in request.stream():
@@ -46,9 +50,9 @@ class Frontend:
                 if stream_size <= STREAM_SIZE_THRESHOLD:
                     replication_chunks.append(chunk)
                 else:
+                    # logging.info("Switching to FEC mode...")
+                    tasks = [self.write_to_endpoint(i) for i in range(K + M)]                        
                     if replication_chunks:
-                        # logging.info("Switching to FEC mode...")
-                        tasks = [self.write_to_endpoint(i) for i in range(K + M)]
                         # Process the replication buffer first
                         for replication_chunk in replication_chunks:
                             encoded_data = ec_driver.encode(replication_chunk)
@@ -70,10 +74,11 @@ class Frontend:
                     # logging.info(f"Sending replicated chunk to backend {idx}...")
                     for chunk in replication_chunks:
                         await self.buffers[idx].put(chunk)
-
-            # Place sentinels in every buffer to signal the end of the stream
-            for buffer in self.buffers:
-                await buffer.put(None)
+                    await self.buffers[idx].put(None)
+            else:
+                # Place sentinels in every buffer to signal the end of the stream
+                for buffer in self.buffers:
+                    await buffer.put(None)
 
         except Exception as e:
             logging.error(f"Error while encoding or sending data: {e}")
@@ -82,14 +87,16 @@ class Frontend:
                 self.failed_count = MAX_FAILURES + 1
 
         finally:
+            #logging.info(f"Waiting for {len(tasks)} tasks to finish...")
             await asyncio.gather(*tasks)
+            #logging.info("All tasks finished.")
 
         if self.failed_count > MAX_FAILURES:
             logging.error("Number of failed backends went over threshold.")
             raise HTTPException(
                 status_code=500, detail="Internal Server Error")
 
-        return {"status": "success"}
+        return PlainTextResponse(f"stream_size {stream_size}")
 
     async def stream_from_buffer(self, backend_id):
         buffer = self.buffers[backend_id]
@@ -106,11 +113,12 @@ class Frontend:
         session = sessions[backend_id]
         headers = {"Content-Type": "application/octet-stream"}
         url = f"{endpoint}?backend_id={backend_id}"
+        # logging.info(f"Sending data to {endpoint}...")
         try:
-            async with session.post(url=url, headers=headers, data=self.stream_from_buffer(backend_id)) as response:
+            async with session.put(url=url, headers=headers, data=self.stream_from_buffer(backend_id)) as response:
                 if response.status != 200:
-                    raise Exception(
-                        f"Failed to send data to {endpoint}. Status: {response.status}")
+                    response_text = await response.text()
+                    raise Exception(f"Failed to send data to {endpoint}. Status: {response.status}, Response: {response_text}")
 
         except Exception as e:
             logging.error(f"Error with endpoint {url}: {e}")
@@ -124,7 +132,7 @@ class Frontend:
                 pass
 
 
-@app.post("/")
+@app.put("/")
 async def receive_data(request: Request):
     frontend = Frontend()
     return await frontend.receive_data(request)

@@ -4,12 +4,12 @@ import time
 import logging
 
 
-# logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 app = FastAPI()
 
-@app.post("/")
-async def receive_stream(request: Request, backend_id: str = None):
+@app.put("/")
+async def receive_stream(request: Request, backend_id: str = ""):
     total_bytes_received = 0
     start_time = time.time()
     
@@ -23,10 +23,9 @@ async def receive_stream(request: Request, backend_id: str = None):
     
     #logging.info(f"Received a total of {total_bytes_received} bytes.")
     #logging.info(f"Received at a speed of {speed:.2f} MB/s.")
-    #if backend_id:
-    #    logging.info(f"Target backend ID: {backend_id}")
+    logging.info(f"{backend_id}: Data received successfully at {speed:.2f} MB/s")
         
-    return PlainTextResponse(f"Data received successfully at {speed:.2f} MB/s")
+    return PlainTextResponse("OK")
 
 if __name__ == "__main__":
     import uvicorn
