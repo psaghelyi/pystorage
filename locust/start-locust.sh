@@ -8,4 +8,6 @@ locust --master --headless \
 -u $NUM_USERS \
 -r $SPAWN_RATE \
 --run-time $RUN_TIME \
---csv $CSV_FILENAME
+--csv $CSV_FILENAME \
+--expect-workers $NUM_WORKERS
+

@@ -7,14 +7,13 @@ services:
       dockerfile: Dockerfile.master
     volumes:
       - ./.results:/app/results
-    #env_file:
-    #  - .env
     environment:
       NUM_USERS: ${NUM_USERS}
       SPAWN_RATE: ${SPAWN_RATE}
       RUN_TIME: ${RUN_TIME}
       CSV_FILENAME: ${CSV_FILENAME}
       PAYLOAD_SIZE: ${PAYLOAD_SIZE}
+      NUM_WORKERS: ${NUM_WORKERS}
     ports:
       - "8089:8089"
     expose:
@@ -27,6 +26,13 @@ services:
     build:
       context: ../locust
       dockerfile: Dockerfile.worker
+    environment:
+      NUM_USERS: ${NUM_USERS}
+      SPAWN_RATE: ${SPAWN_RATE}
+      RUN_TIME: ${RUN_TIME}
+      CSV_FILENAME: ${CSV_FILENAME}
+      PAYLOAD_SIZE: ${PAYLOAD_SIZE}
+      NUM_WORKERS: ${NUM_WORKERS}
     networks:
       - net-locust
       - pystorage_net-frontend
