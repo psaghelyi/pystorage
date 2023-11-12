@@ -67,79 +67,37 @@ services:
   #  build:
   #    context: backend
   #  expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend10:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend11:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend12:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend13:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend14:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend15:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend16:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend17:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend18:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
-  #ackend19:
-  # build:
-  #   context: backend
-  # expose:
-  #   - 9000
-  # networks:
-  #   - net-backend
+  #    - 9000
+  #  networks:
+  #    - net-backend
+  #backend10:
+  #  build:
+  #    context: backend
+  #  expose:
+  #    - 9000
+  #  networks:
+  #    - net-backend
+  #backend11:
+  #  build:
+  #    context: backend
+  #  expose:
+  #    - 9000
+  #  networks:
+  #    - net-backend
+  #backend12:
+  #  build:
+  #    context: backend
+  #  expose:
+  #    - 9000
+  #  networks:
+  #    - net-backend
+  #backend13:
+  #  build:
+  #    context: backend
+  #  expose:
+  #    - 9000
+  #  networks:
+  #    - net-backend
 
   frontend:
     build:
@@ -164,12 +122,6 @@ services:
       #- backend11
       #- backend12
       #- backend13
-      #- backend14
-      #- backend15
-      #- backend16
-      #- backend17
-      #- backend18
-      #- backend19
 
   proxy:
     image: nginx:1.23.1

@@ -35,7 +35,7 @@ class Frontend:
         replication_nodes = random.sample(range(K + M), M + 1)
         replication_chunks = []
         tasks = []
-        
+
         #if not [b.empty() for b in self.buffers] == [True] * (K + M):
         #    logging.error("Buffers are not empty!")
         #    raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -51,7 +51,7 @@ class Frontend:
                     replication_chunks.append(chunk)
                 else:
                     # logging.info("Switching to FEC mode...")
-                    tasks = [self.write_to_endpoint(i) for i in range(K + M)]                        
+                    tasks = [self.write_to_endpoint(i) for i in range(K + M)]
                     if replication_chunks:
                         # Process the replication buffer first
                         for replication_chunk in replication_chunks:

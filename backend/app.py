@@ -17,15 +17,15 @@ async def receive_stream(request: Request, backend_id: str = ""):
     async for chunk in request.stream():
         total_bytes_received += len(chunk)
     
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    speed = total_bytes_received / elapsed_time / (1024 * 1024)  # MB/s
+    #end_time = time.time()
+    #elapsed_time = end_time - start_time
+    #speed = total_bytes_received / elapsed_time / (1024 * 1024)  # MB/s
     
     #logging.info(f"Received a total of {total_bytes_received} bytes.")
     #logging.info(f"Received at a speed of {speed:.2f} MB/s.")
-    logging.info(f"{backend_id}: Data received successfully at {speed:.2f} MB/s")
+    #logging.info(f"{backend_id}: Data received successfully at {speed:.2f} MB/s")
         
-    return PlainTextResponse("OK")
+    return PlainTextResponse(f"Received a total of {total_bytes_received} bytes.")
 
 if __name__ == "__main__":
     import uvicorn
