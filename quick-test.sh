@@ -14,5 +14,5 @@ dd if=/dev/urandom of=content.bin bs=1M count=10
 
 while true
 do
-    curl -X PUT http://localhost:8000 --data-binary "@content.bin" -H "Transfer-Encoding: chunked"
+    curl -X PUT http://192.168.1.105:8000 --data-binary "@content.bin" -H "Transfer-Encoding: chunked"
 done
