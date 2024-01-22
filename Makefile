@@ -13,7 +13,7 @@ log_frontend:
 	docker compose logs -f frontend
 
 run_locust:
-	docker run --rm --name locust -p 8089:8089 --network pystorage_net-frontend -e PAYLOAD_SIZE=1048576 -v ${PWD}/locust:/locust locustio/locust -f /locust/locustfile.py --host http://frontend:8080
+	docker run --rm --name locust -p 8089:8089 --network pystorage_net-frontend -e PAYLOAD_SIZE=1048576 -v ${PWD}/locust:/locust locustio/locust -f /locust/locustfile.py --host http://192.168.1.105:8000
 
 run_analysis:
 	cd analysis && papermill testing.ipynb testing-output.ipynb 
